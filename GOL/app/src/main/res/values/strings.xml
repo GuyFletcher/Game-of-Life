@@ -1,0 +1,35 @@
+<resources>
+    <string name="app_name">Game of Life</string>
+    <string name="Blue"></string>
+    <string name="Cyan"></string>
+    <string name="Green"></string>
+    <string name="Magenta"></string>
+    <string name="Orange"></string>
+    <string name="Pink"></string>
+    <string name="Red"></string>
+    <string name="White"></string>
+    <string name="Yellow"></string>
+    <string name="Start">Start Animation</string>
+
+    <string-array name="color_arrays">
+        <item>Blue</item>
+        <item>Cyan</item>
+        <item>Green</item>
+        <item>Magenta</item>
+        <item>Orange</item>
+        <item>Pink</item>
+        <item>Red</item>
+        <item>White</item>
+        <item>Yellow</item>
+    </string-array>
+
+    <string-array name="delay_arrays">
+        <item>0.25</item>
+        <item>0.5</item>
+        <item>0.75</item>
+        <item>1.0</item>
+        <item>1.25</item>
+        <item>1.5</item>
+    </string-array>
+
+</resources>
