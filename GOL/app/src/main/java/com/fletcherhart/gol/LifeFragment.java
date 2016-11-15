@@ -418,23 +418,29 @@ public class LifeFragment extends Fragment {
 
         private int mPosition, mPosition2;
         private Button mButton;
+        private ImageView image;
 
         public GridHolder(LayoutInflater inflater, ViewGroup container) {
             super(inflater.inflate(R.layout.square, container, false));
 
-            mButton = (Button)itemView.findViewById(R.id.cell_button);
+           // mButton = (Button)itemView.findViewById(R.id.cell_button);
 
-            mButton.setOnClickListener(new View.OnClickListener() {
+            image = (ImageView) itemView.findViewById(R.id.cell_image);
+            //image.setImageResource(R.mipmap.dot);
+
+            image.setOnClickListener(new View.OnClickListener() {
                 @Override
                     public void onClick(View view) {
                     if (mTouchEnabled && (mCell[mPosition].getStatus() == false)) {
                         mCell[mPosition].setStatus(true);
                         mAdapter.notifyItemChanged(mPosition); // reload ViewHolder
+                        image.setImageResource(R.mipmap.dot);
                     }
                     else
                     {
                         mCell[mPosition].setStatus(false);
                         mAdapter.notifyItemChanged(mPosition); // reload ViewHolder
+                        image.setImageDrawable(null);
                     }
                 }
             });
