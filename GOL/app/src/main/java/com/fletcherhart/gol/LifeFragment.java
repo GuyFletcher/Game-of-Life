@@ -1,20 +1,18 @@
 package com.fletcherhart.gol;
 
-import android.app.Fragment;
+
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
-import android.support.v4.app.FragmentActivity;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.graphics.Color;
-import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
-import android.support.annotation.Dimension;
-import android.support.v4.app.FragmentManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,10 +21,10 @@ import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.os.Handler;
-import java.io.*;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
-import java.util.TimerTask;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 
 
@@ -37,19 +35,18 @@ public class LifeFragment extends Fragment {
 
     private Cell [][] mCells;
 
+    private Cell[] mCell;
+
     private int mPulseDiameter;				//Diameter of Pulsating cells
     private boolean mPulseIncreasing;	//Are the circles getting bigger or smaller
     private boolean mTouchEnabled = true;
 
-    private Timer mTimer;
     private Colony mColony;
-    private Button mAnimationController;
     private EditText mSizeField, mRowsField, mColumnsField;
-    private Spinner mDelayBox, mAliveBox, mDeadBox;
     private TextView mDelayLabel, mAliveLabel, mDeadLabel;
 
     private RecyclerView mLifeRecycler;
-    private RecyclerView.Adapter<ArrayHolder> mAdapter = new ArrayAdapter();
+    private RecyclerView.Adapter<GridHolder> mAdapter = new GridAdapter();
 
     private TextView mCurGen;
 
@@ -57,24 +54,33 @@ public class LifeFragment extends Fragment {
 
     private static final int sDEFAULTDELAY = 1000;
 
-    Button mCloneButton, mNextButton;
-
     private int mRows, mColumns, mSideLength;
     private boolean mRunning;
-    private Paint mAlive, mDead;
+    private Paint mAlive = new Paint(), mDead = new Paint();
 
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.fragment_life_colony, container, false);
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View v = inflater.inflate(R.layout.fragment_life, container, false);
 
-        mLifeRecycler = (RecyclerView) v.findViewById(R.id.life_recycler_view);
+        mRows = 20;
+        mColumns = 20;
+        mSideLength = 20;
+
+        mCells = new Cell[mRows][mColumns];
+        mCell = new Cell[mRows*mColumns];
+
+        for(int i = 0; i < mRows; i++)
+        {
+            for(int j = 0; j < mColumns; j++)
+            {
+                mCell[i] = new Cell(i,j,2,mAlive,mDead);
+            }
+        }
+
+        mLifeRecycler = (RecyclerView) v.findViewById(R.id.reycler_gol);
         mLifeRecycler.setLayoutManager(new GridLayoutManager(getActivity(), 20));
         mLifeRecycler.setAdapter(mAdapter);
 
 
-
-        mRows = 25;
-        mColumns = 39;
-        mSideLength = 20;
 
         mAlive.setColor(Color.BLUE);
         mDead.setColor(Color.YELLOW);
@@ -82,8 +88,7 @@ public class LifeFragment extends Fragment {
         mColony = new Colony(mRows, mColumns,  mSideLength, mAlive, mDead);
         //colonyPanel.setPreferredSize(new Dimension(columns * sideLength, mRows * sideLength));
 
-        mNextButton = (Button) v.findViewById(R.id.life_button);
-        mNextButton.setText("Next");
+        Button mNextButton = (Button) v.findViewById(R.id.next_button);
         mNextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -95,6 +100,7 @@ public class LifeFragment extends Fragment {
             }
         });
 
+        Button mAnimationController = (Button) v.findViewById(R.id.animation);
         mAnimationController.setText("Start Animation");
         mAnimationController.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -103,7 +109,7 @@ public class LifeFragment extends Fragment {
             }
         });
 
-        mCloneButton = (Button) v.findViewById(R.id.life_button);
+        Button mCloneButton = (Button) v.findViewById(R.id.life_button);
         mCloneButton.setText("Clone");
         mCloneButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -114,89 +120,13 @@ public class LifeFragment extends Fragment {
 
         // EXTRA CREDIT:
         // Creating strings for the Spinneres
-        mAliveBox = (Spinner) v.findViewById(R.id.spin_color);
-        mAliveBox.setOnClickListener(new View.OnClickListener(){
-            public void onClick(View v)
-            {
-                switch (mAliveBox.getSelectedItemPosition()){
-                    case 0:
-                        mAlive.setColor(Color.BLUE);
-                        break;
-                    case 1:
-                        mAlive.setColor(Color.CYAN);
-                        break;
-                    case 2:
-                        mAlive.setColor(Color.GREEN);
-                        break;
-                    case 3:
-                        mAlive.setColor(Color.MAGENTA);
-                        break;
-                    case 4:
-                        mAlive.setColor(Color.GRAY);
-                        break;
-                    case 5:
-                        mAlive.setColor(Color.TRANSPARENT);
-                        break;
-                    case 6:
-                        mAlive.setColor(Color.RED);
-                        break;
-                    case 7:
-                        mAlive.setColor(Color.WHITE);
-                        break;
-                    case 8:
-                        mAlive.setColor(Color.YELLOW);
-                        break;
-                }
+        final Spinner mAliveBox = (Spinner) v.findViewById(R.id.spin_color);
 
-                //mColony.setAlive(mAlive);
-            }
-        });
 
-        mDeadBox = (Spinner) v.findViewById(R.id.spin_color);
-        mDeadBox.setOnClickListener(new View.OnClickListener(){
-            public void onClick(View v)
-            {
-               switch (mDeadBox.getSelectedItemPosition()) {
-                   case 0:
-                       mDead.setColor(Color.BLUE);
-                       break;
-                   case 1:
-                       mDead.setColor(Color.CYAN);
-                       break;
-                   case 2:
-                       mDead.setColor(Color.GREEN);
-                       break;
-                   case 3:
-                       mDead.setColor(Color.MAGENTA);
-                       break;
-                   case 4:
-                       mDead.setColor(Color.GRAY);
-                       break;
-                   case 5:
-                       mDead.setColor(Color.TRANSPARENT);
-                       break;
-                   case 6:
-                       mDead.setColor(Color.RED);
-                       break;
-                   case 7:
-                       mDead.setColor(Color.WHITE);
-                       break;
-                   case 8:
-                       mDead.setColor(Color.YELLOW);
-                       break;
-               }
+        final Spinner mDeadBox = (Spinner) v.findViewById(R.id.spin_color);
 
-                //colonyPanel.setDead(mDead);
-            }
-        });
 
-        mDelayBox = (Spinner) v.findViewById(R.id.spin_delay);
-        mDelayBox.setOnClickListener(new View.OnClickListener(){
-            public void onClick(View v)
-            {
-                new DelayListener();
-            }
-        });
+       final Spinner mDelayBox = (Spinner) v.findViewById(R.id.spin_delay);
 
 
         // EXTRA CREDIT
@@ -207,20 +137,20 @@ public class LifeFragment extends Fragment {
 
         // EXTRA CREDIT
         // Labels for the Spinneres.
-        mAliveLabel.setText("Alive Cell:");
+/*        mAliveLabel.setText("Alive Cell:");
         mDeadLabel.setText("Dead Cell:");
-        mDelayLabel.setText("Delay:");
+        mDelayLabel.setText("Delay:");*/
 
         //EXTRA CREDIT
         //Generation Stuff
-        mCurGen.setText("Generation: 0");
+/*        mCurGen.setText("Generation: 0");
         Button reset = (Button) v.findViewById(R.id.reset_button);
         reset.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
             }
-        });
+        });*/
 
         //EXTRA CREDIT
         //Make the Save and Open buttons
@@ -283,12 +213,12 @@ public class LifeFragment extends Fragment {
         public void onClick(View v){
             if (mRunning){
                 mHandle.removeCallbacks(r);
-                mAnimationController.setText("Start Animation");
+               // mAnimationController.setText("Start Animation");
                 mRunning = false;
             }
             else {
-                mHandle.postDelayed(r, mDelayBox.getSelectedItemPosition());
-                mAnimationController.setText("Stop Animation");
+               // mHandle.postDelayed(r, mDelayBox.getSelectedItemPosition());
+                //mAnimationController.setText("Stop Animation");
                 mRunning = true;
             }
         }
@@ -301,32 +231,6 @@ public class LifeFragment extends Fragment {
             mColony.updateColony();
         }
     };
-
-    // EXTRA CREDIT
-    private class DelayListener implements View.OnClickListener {
-        public void onClick(View v){
-            switch(mDelayBox.getSelectedItemPosition()){
-                case 0:
-                    mHandle.postDelayed(r, 250);
-                    break;
-                case 1:
-                    mHandle.postDelayed(r, 500);
-                    break;
-                case 2:
-                    mHandle.postDelayed(r, 750);
-                    break;
-                case 3:
-                    mHandle.postDelayed(r, 1000);
-                    break;
-                case 4:
-                    mHandle.postDelayed(r, 1250);
-                    break;
-                case 5:
-                    mHandle.postDelayed(r, 1500);
-                    break;
-            }
-        }
-    }
 
     //EXTRA CREDIT
     //Reset Generation
@@ -510,25 +414,26 @@ public class LifeFragment extends Fragment {
     }
 
 
-    private class ArrayHolder extends RecyclerView.ViewHolder {
+    private class GridHolder extends RecyclerView.ViewHolder {
 
         private int mPosition, mPosition2;
         private Button mButton;
-        private ImageView imageView;
 
-        public ArrayHolder(LayoutInflater inflater, ViewGroup container) {
+        public GridHolder(LayoutInflater inflater, ViewGroup container) {
             super(inflater.inflate(R.layout.square, container, false));
-
-            imageView = (ImageView) itemView.findViewById(R.id.cell_image);
-            imageView.startAnimation(AnimationUtils.loadAnimation(context, R.anim.animation));
 
             mButton = (Button)itemView.findViewById(R.id.cell_button);
 
-            imageView.setOnClickListener(new View.OnClickListener() {
+            mButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                     public void onClick(View view) {
-                    if (mTouchEnabled && (mCells[mPosition][mPosition2].getStatus() == false)) {
-                        mCells[mPosition][mPosition2].setStatus(true);
+                    if (mTouchEnabled && (mCell[mPosition].getStatus() == false)) {
+                        mCell[mPosition].setStatus(true);
+                        mAdapter.notifyItemChanged(mPosition); // reload ViewHolder
+                    }
+                    else
+                    {
+                        mCell[mPosition].setStatus(false);
                         mAdapter.notifyItemChanged(mPosition); // reload ViewHolder
                     }
                 }
@@ -540,29 +445,23 @@ public class LifeFragment extends Fragment {
         }
     }
 
-    private class ArrayAdapter extends RecyclerView.Adapter<ArrayHolder> {
-        @Override
-        public void onBindViewHolder(ArrayHolder holder, int position) {
+    private class GridAdapter extends RecyclerView.Adapter<GridHolder> {
+        public void onBindViewHolder(GridHolder holder, int position) {
             // tell holder which place on grid it is representing
             holder.bindPosition(position);
             // actually change image displayed
-            if (mCells[position][position].getStatus() == true) {
-                //change color to alive
-            } else {
-                //holder.mButton.setBackgroundResource(R.drawable.empty);
-                //change color to dead
-            }
+
         }
 
         @Override
-        public ArrayHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        public GridHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             LayoutInflater inflater = LayoutInflater.from(getActivity());
-            return new ArrayHolder(inflater, parent);
+            return new GridHolder(inflater, parent);
         }
 
         @Override
         public int getItemCount() {
-            return mCells.length;
+            return mCell.length;
         }
     }
 

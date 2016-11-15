@@ -9,14 +9,8 @@
     android:layout_gravity="center">
     <Button
         android:id="@+id/cell_button"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
-        android:layout_gravity="center"
-        tools:text=""/>
-    <ImageView
-        android:id="@+id/cell_image"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
         android:layout_gravity="center"
         tools:text=""/>
 </FrameLayout>

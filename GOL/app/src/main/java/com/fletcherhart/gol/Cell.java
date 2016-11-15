@@ -24,7 +24,7 @@ public class Cell implements Serializable {
     private int mAge;					// The age of the cell
     // Instance Variables
     private int mRow, mColumn;	// The mRow and column of the cell
-    private boolean mStatus; 	// The status of the cell
+    private boolean mStatus = false; 	// The status of the cell
     // false means dead; true means alive
     private int mSideLength;						// The length of a cell
     private Paint mAlive, mDead;				// The clor of living and dead cells
