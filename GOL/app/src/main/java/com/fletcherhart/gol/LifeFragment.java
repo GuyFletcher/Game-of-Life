@@ -35,7 +35,7 @@ public class LifeFragment extends Fragment {
 
     private Cell [][] mCells;
 
-    private Cell[] mCell;
+    private Cell[] mCell = new Cell[400];
 
     private int mPulseDiameter;				//Diameter of Pulsating cells
     private boolean mPulseIncreasing;	//Are the circles getting bigger or smaller
@@ -65,19 +65,21 @@ public class LifeFragment extends Fragment {
         mColumns = 20;
         mSideLength = 20;
 
-        mCells = new Cell[mRows][mColumns];
-        mCell = new Cell[mRows*mColumns];
+        Canvas page = new Canvas();
 
-        for(int i = 0; i < mRows; i++)
+        paintComponent(page);
+
+        mCells = new Cell[mRows][mColumns];
+
+
+        for(int i = 0; i < mRows*mColumns; i++)
         {
-            for(int j = 0; j < mColumns; j++)
-            {
-                mCell[i] = new Cell(i,j,2,mAlive,mDead);
-            }
+                mCell[i] = new Cell();
+
         }
 
         mLifeRecycler = (RecyclerView) v.findViewById(R.id.reycler_gol);
-        mLifeRecycler.setLayoutManager(new GridLayoutManager(getActivity(), 20));
+        mLifeRecycler.setLayoutManager(new GridLayoutManager(getActivity(), mColumns));
         mLifeRecycler.setAdapter(mAdapter);
 
 
@@ -85,7 +87,7 @@ public class LifeFragment extends Fragment {
         mAlive.setColor(Color.BLUE);
         mDead.setColor(Color.YELLOW);
 
-        mColony = new Colony(mRows, mColumns,  mSideLength, mAlive, mDead);
+        //mColony = new Colony(mRows, mColumns,  mSideLength, mAlive, mDead);
         //colonyPanel.setPreferredSize(new Dimension(columns * sideLength, mRows * sideLength));
 
         Button mNextButton = (Button) v.findViewById(R.id.next_button);
@@ -283,18 +285,6 @@ public class LifeFragment extends Fragment {
     // Draws the squares with the grid.
     public void paintComponent(Canvas page){
 
-
-        //EXTRA CREDIT
-        //	Draw all cells with circle for pulse
-        if (page!= null){
-            for(int i = 0; i < mRows; i++){
-                for(int j = 0; j < mColumns; j++)
-                {
-                    mCells[i][j].drawCellAsCircle(page, mPulseDiameter);
-                }
-            }
-        }
-
         if(mPulseDiameter >= mSideLength){
             mPulseIncreasing = false;
             //Do this incase The size of cells has been changed
@@ -416,31 +406,30 @@ public class LifeFragment extends Fragment {
 
     private class GridHolder extends RecyclerView.ViewHolder {
 
-        private int mPosition, mPosition2;
+        private int mPosition;
         private Button mButton;
         private ImageView image;
 
         public GridHolder(LayoutInflater inflater, ViewGroup container) {
             super(inflater.inflate(R.layout.square, container, false));
 
-           // mButton = (Button)itemView.findViewById(R.id.cell_button);
+            mButton = (Button)itemView.findViewById(R.id.cell_button);
 
             image = (ImageView) itemView.findViewById(R.id.cell_image);
             //image.setImageResource(R.mipmap.dot);
 
-            image.setOnClickListener(new View.OnClickListener() {
+            mButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                     public void onClick(View view) {
                     if (mTouchEnabled && (mCell[mPosition].getStatus() == false)) {
                         mCell[mPosition].setStatus(true);
                         mAdapter.notifyItemChanged(mPosition); // reload ViewHolder
-                        image.setImageResource(R.mipmap.dot);
                     }
                     else
                     {
                         mCell[mPosition].setStatus(false);
                         mAdapter.notifyItemChanged(mPosition); // reload ViewHolder
-                        image.setImageDrawable(null);
+                       // image.setImageDrawable(null);
                     }
                 }
             });
@@ -456,7 +445,14 @@ public class LifeFragment extends Fragment {
             // tell holder which place on grid it is representing
             holder.bindPosition(position);
             // actually change image displayed
+            if(mCell[position].getStatus() == true)
+            {
+                holder.mButton.setBackgroundResource(R.mipmap.dot);
+            }
+            else
+            {
 
+            }
         }
 
         @Override
