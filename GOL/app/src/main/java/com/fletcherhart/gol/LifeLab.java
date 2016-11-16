@@ -20,7 +20,6 @@ public class LifeLab {
 
     private Context mContext;
     private SQLiteDatabase mDatabase;
-    private Colony mColony;
 
     public static LifeLab get(Context context) {
         if (sLifeLab == null) {
@@ -33,6 +32,4 @@ public class LifeLab {
         mContext = context.getApplicationContext();
     }
 
-    public void setColony(Colony c) {mColony = c;}
-    public Colony getColony() {return mColony;}
 }

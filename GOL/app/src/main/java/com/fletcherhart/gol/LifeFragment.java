@@ -2,14 +2,10 @@ package com.fletcherhart.gol;
 
 
 import android.content.Context;
-import android.content.Intent;
-import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.PorterDuff;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
-import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -17,14 +13,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.os.Handler;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Timer;
 import android.support.v7.widget.RecyclerView;
 
 
@@ -41,7 +33,6 @@ public class LifeFragment extends Fragment {
     private boolean mPulseIncreasing;	//Are the circles getting bigger or smaller
     private boolean mTouchEnabled = true;
 
-    private Colony mColony;
     private EditText mSizeField, mRowsField, mColumnsField;
     private TextView mDelayLabel, mAliveLabel, mDeadLabel;
 
@@ -65,17 +56,21 @@ public class LifeFragment extends Fragment {
         mColumns = 20;
         mSideLength = 20;
 
-        Canvas page = new Canvas();
-
-        paintComponent(page);
 
         mCells = new Cell[mRows][mColumns];
+
+        for(int i = 0; i < mRows; i++)
+        {
+            for(int j = 0; j < mColumns; j++)
+            {
+                mCells[i][j] = new Cell();
+            }
+        }
 
 
         for(int i = 0; i < mRows*mColumns; i++)
         {
                 mCell[i] = new Cell();
-
         }
 
         mLifeRecycler = (RecyclerView) v.findViewById(R.id.reycler_gol);
@@ -94,11 +89,22 @@ public class LifeFragment extends Fragment {
         mNextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                int k = 0;
+                for(int i = 0;i < mRows;i++)
+                {
+                    for(int j = 0; j < mRows;j++)
+                    {
+                        mCells[i][j] = mCell[k];
+                        k++;
+                    }
+                }
 
-                mColony.updateColony();
+                updateColony();
+                mAdapter.notifyDataSetChanged();
+                //System.out.println("Changed");
 
                 //Update Generation Label
-                mCurGen.setText("Generation: " + Integer.toString(mColony.getGeneration()));
+              //  mCurGen.setText("Generation: " + Integer.toString(mColony.getGeneration()));
             }
         });
 
@@ -107,7 +113,7 @@ public class LifeFragment extends Fragment {
         mAnimationController.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ControllerListener control;
+
             }
         });
 
@@ -137,11 +143,6 @@ public class LifeFragment extends Fragment {
         mDeadBox.setSelection(8);
         mDelayBox.setSelection(3);
 
-        // EXTRA CREDIT
-        // Labels for the Spinneres.
-/*        mAliveLabel.setText("Alive Cell:");
-        mDeadLabel.setText("Dead Cell:");
-        mDelayLabel.setText("Delay:");*/
 
         //EXTRA CREDIT
         //Generation Stuff
@@ -181,12 +182,6 @@ public class LifeFragment extends Fragment {
             }
         });
 
-        // EXTRA CREDIT
-        // Adds the GUI components to a panel, buttonPanel.
-       /* bottomPanel = new JPanel(new BorderLayout());
-        bottomPanel.add(firstPanel, BorderLayout.NORTH);
-        bottomPanel.add(secondPanel, BorderLayout.CENTER);
-        bottomPanel.add(thirdPanel, BorderLayout.SOUTH);*/
 
 
         TextView rows = (TextView)v.findViewById(R.id.life_text);
@@ -194,21 +189,8 @@ public class LifeFragment extends Fragment {
         TextView size = (TextView)v.findViewById(R.id.life_text);
 
 
-
-        // Groups the buttonPanel and colonyPanel
-       /* Container contentPane = getContentPane();
-        contentPane.setLayout(new BorderLayout());
-        contentPane.add(colonyPanel, BorderLayout.NORTH);
-        contentPane.add(bottomPanel, BorderLayout.CENTER);*/
-
         return v;
     }
-
-    public int getSideLength(){
-        return mSideLength;
-    }
-
-
 
     // Class to listen for the timer.
     private class ControllerListener implements View.OnClickListener{
@@ -230,7 +212,7 @@ public class LifeFragment extends Fragment {
     {
         public void run()
         {
-            mColony.updateColony();
+            updateColony();
         }
     };
 
@@ -238,9 +220,9 @@ public class LifeFragment extends Fragment {
     //Reset Generation
     private class GenResetListener implements View.OnClickListener{
         public void onClick(View v){
-            mColony.setGeneration(0);
+            setGeneration(0);
             //Make Sure gets displayed
-            mCurGen.setText("Generation: " + Integer.toString(mColony.getGeneration()));
+            mCurGen.setText("Generation: " + Integer.toString(getGeneration()));
         }
     }
 
@@ -275,50 +257,15 @@ public class LifeFragment extends Fragment {
     private class SizeListener implements View.OnClickListener{
         public void onClick(View v){
             mSideLength = Integer.parseInt(mSizeField.getText().toString());
-            mColony.setSideLength(mSideLength);
-            mColony.setPreferredSize(mColumns * mSideLength, mRows * mSideLength);
+            setSideLength(mSideLength);
+            setPreferredSize(mColumns * mSideLength, mRows * mSideLength);
            // pack();
            // repaint();
         }
     }
 
     // Draws the squares with the grid.
-    public void paintComponent(Canvas page){
 
-        if(mPulseDiameter >= mSideLength){
-            mPulseIncreasing = false;
-            //Do this incase The size of cells has been changed
-            mPulseDiameter = mSideLength;
-        }
-
-        if(mPulseDiameter <= mSideLength/4){
-            mPulseIncreasing = true;
-        }
-
-        //Change pulseDiameter size
-        if(mPulseIncreasing){
-
-            mPulseDiameter++;
-        }
-        else{
-            mPulseDiameter--;
-        }
-
-        //EXTRA CREDIT
-        //Taken out in favor of pulsing
-        //drawColony(page);
-
-        page.drawColor(Color.GRAY, PorterDuff.Mode.CLEAR);
-
-        Paint p = new Paint();
-        p.setColor(Color.BLACK);
-
-        // Draw the grid.
-        for (int i = 0; i < mColumns; i++)
-            page.drawLine(i * mSideLength, 0, i * mSideLength, mSideLength * mRows, p);
-        for (int i = 0; i < mRows; i++)
-            page.drawLine(0, i * mSideLength, mSideLength * mColumns, i * mSideLength, p);
-    }
 
 
     //  A method that updates the entire colony to the next generation.
@@ -387,8 +334,16 @@ public class LifeFragment extends Fragment {
         //EXTRA CREDIT
         //Increase generation
         mGeneration++;
-
-        // repaint();
+        int k = 0;
+        for(int i = 0; i < mRows; i++)
+        {
+            for(int j = 0; j < mColumns; j++)
+            {
+                mCell[k] = mCells[i][j];
+                //System.out.println("mCell at : " + k + mCell[k].getStatus() + " mCells: " + mCells[i][j].getStatus());
+                k++;
+            }
+        }
     }
 
     public void setGeneration(int gen){
@@ -408,15 +363,12 @@ public class LifeFragment extends Fragment {
 
         private int mPosition;
         private Button mButton;
-        private ImageView image;
+
 
         public GridHolder(LayoutInflater inflater, ViewGroup container) {
             super(inflater.inflate(R.layout.square, container, false));
 
             mButton = (Button)itemView.findViewById(R.id.cell_button);
-
-            image = (ImageView) itemView.findViewById(R.id.cell_image);
-            //image.setImageResource(R.mipmap.dot);
 
             mButton.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -429,7 +381,6 @@ public class LifeFragment extends Fragment {
                     {
                         mCell[mPosition].setStatus(false);
                         mAdapter.notifyItemChanged(mPosition); // reload ViewHolder
-                       // image.setImageDrawable(null);
                     }
                 }
             });
@@ -451,7 +402,7 @@ public class LifeFragment extends Fragment {
             }
             else
             {
-
+                holder.mButton.setBackgroundResource(R.drawable.dead);
             }
         }
 
