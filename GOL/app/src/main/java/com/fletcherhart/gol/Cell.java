@@ -23,7 +23,6 @@ public class Cell {
     // Instance Variables
     private int mRow, mColumn;	// The mRow and column of the cell
     private boolean mStatus = false; 	// The status of the cell
-    // false means dead; true means alive
     private int mSideLength;						// The length of a cell
 
     // Constructor for a cell that sets the status, the mRow and the column

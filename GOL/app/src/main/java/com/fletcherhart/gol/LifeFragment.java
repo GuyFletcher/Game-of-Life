@@ -6,6 +6,9 @@ import android.graphics.Paint;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -45,7 +48,10 @@ public class LifeFragment extends Fragment {
 
     private static final int sDEFAULTDELAY = 1000;
 
-    private int mRows, mColumns, mSideLength;
+    private Spinner mAliveBox, mDeadBox;
+
+    private int mRows, mColumns;
+    public int mColor, mColor2;
     private boolean mRunning;
     private Paint mAlive = new Paint(), mDead = new Paint();
 
@@ -54,7 +60,6 @@ public class LifeFragment extends Fragment {
 
         mRows = 20;
         mColumns = 20;
-        mSideLength = 20;
 
 
         mCells = new Cell[mRows][mColumns];
@@ -77,13 +82,8 @@ public class LifeFragment extends Fragment {
         mLifeRecycler.setLayoutManager(new GridLayoutManager(getActivity(), mColumns));
         mLifeRecycler.setAdapter(mAdapter);
 
-
-
         mAlive.setColor(Color.BLUE);
         mDead.setColor(Color.YELLOW);
-
-        //mColony = new Colony(mRows, mColumns,  mSideLength, mAlive, mDead);
-        //colonyPanel.setPreferredSize(new Dimension(columns * sideLength, mRows * sideLength));
 
         Button mNextButton = (Button) v.findViewById(R.id.next_button);
         mNextButton.setOnClickListener(new View.OnClickListener() {
@@ -114,6 +114,9 @@ public class LifeFragment extends Fragment {
             @Override
             public void onClick(View v) {
 
+                //every x milleseconds call updateColony()
+                //stop on second press
+
             }
         });
 
@@ -128,11 +131,55 @@ public class LifeFragment extends Fragment {
 
         // EXTRA CREDIT:
         // Creating strings for the Spinneres
-        final Spinner mAliveBox = (Spinner) v.findViewById(R.id.spin_color);
+        mAliveBox = (Spinner) v.findViewById(R.id.spin_alive);
+        mAliveBox.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
 
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                switch (position) {
+                    case 0:
+                        mColor = 0;
+                        break;
+                    case 1:
+                        mColor = 1;
+                        break;
+                    case 2:
+                        mColor = 2;
+                        break;
+                    case 3:
+                        mColor = 3;
+                        break;
+                }
 
-        final Spinner mDeadBox = (Spinner) v.findViewById(R.id.spin_color);
+            }
+            public void onNothingSelected(AdapterView<?> parent) {
 
+            }
+        });
+
+        mDeadBox = (Spinner) v.findViewById(R.id.spin_dead);
+        mDeadBox.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                switch (position) {
+                    case 0:
+                        mColor2 = 0;
+                        break;
+                    case 1:
+                        mColor2 = 1;
+                        break;
+                    case 2:
+                        mColor2 = 2;
+                        break;
+                    case 3:
+                        mColor2 = 3;
+                        break;
+                }
+
+            }
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
 
        final Spinner mDelayBox = (Spinner) v.findViewById(R.id.spin_delay);
 
@@ -252,22 +299,6 @@ public class LifeFragment extends Fragment {
         }
     }
 
-    //EXTRA CREDIT
-    //set the size of each cell
-    private class SizeListener implements View.OnClickListener{
-        public void onClick(View v){
-            mSideLength = Integer.parseInt(mSizeField.getText().toString());
-            setSideLength(mSideLength);
-            setPreferredSize(mColumns * mSideLength, mRows * mSideLength);
-           // pack();
-           // repaint();
-        }
-    }
-
-    // Draws the squares with the grid.
-
-
-
     //  A method that updates the entire colony to the next generation.
     public void updateColony(){
 
@@ -284,7 +315,7 @@ public class LifeFragment extends Fragment {
                 int leftOfmColumn = j + mColumns - 1;
                 int rightOfmColumn = j + 1;
 
-                // Checks to see if the cells are alive or dead. If they are alive
+                // Checks to see if the cells are alive or blue. If they are alive
                 // it increments the count for living neighbors.
                 if ( mCells[i][j].getStatus() ){
                     livingNeighborsCount[leftOfmRow % mRows][leftOfmColumn % mColumns]++;
@@ -353,7 +384,6 @@ public class LifeFragment extends Fragment {
         return mGeneration;
     }
 
-    public void setSideLength(int side) {mSideLength = side;}
     public void setPreferredSize(int col, int row) {mColumns = col;
         mRows = row;
     }
@@ -368,7 +398,10 @@ public class LifeFragment extends Fragment {
         public GridHolder(LayoutInflater inflater, ViewGroup container) {
             super(inflater.inflate(R.layout.square, container, false));
 
+
             mButton = (Button)itemView.findViewById(R.id.cell_button);
+            Animation pulse = AnimationUtils.loadAnimation(mButton.getContext(), R.anim.animation);
+            mButton.startAnimation(pulse);
 
             mButton.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -389,6 +422,7 @@ public class LifeFragment extends Fragment {
         public void bindPosition(int p) {
             mPosition = p;
         }
+
     }
 
     private class GridAdapter extends RecyclerView.Adapter<GridHolder> {
@@ -398,11 +432,53 @@ public class LifeFragment extends Fragment {
             // actually change image displayed
             if(mCell[position].getStatus() == true)
             {
-                holder.mButton.setBackgroundResource(R.mipmap.dot);
+                //holder.mButton.setBackgroundResource(R.drawable.red);
+                changeButton(holder);
             }
             else
             {
-                holder.mButton.setBackgroundResource(R.drawable.dead);
+               //holder.mButton.setBackgroundResource(R.drawable.green);
+                changeButton2(holder);
+            }
+        }
+
+        public void changeButton(GridHolder holder)
+        {
+            if(mColor == 0)
+            {
+                holder.mButton.setBackgroundResource(R.drawable.red);
+            }
+            else if (mColor == 1)
+            {
+                holder.mButton.setBackgroundResource(R.drawable.green);
+            }
+            else if (mColor == 2)
+            {
+                holder.mButton.setBackgroundResource(R.drawable.blue);
+            }
+            else if (mColor == 3)
+            {
+                holder.mButton.setBackgroundResource(R.drawable.purple);
+            }
+        }
+
+        public void changeButton2(GridHolder holder)
+        {
+            if(mColor2 == 0)
+            {
+                holder.mButton.setBackgroundResource(R.drawable.red);
+            }
+            else if (mColor2 == 1)
+            {
+                holder.mButton.setBackgroundResource(R.drawable.green);
+            }
+            else if (mColor2 == 2)
+            {
+                holder.mButton.setBackgroundResource(R.drawable.blue);
+            }
+            else if (mColor2 == 3)
+            {
+                holder.mButton.setBackgroundResource(R.drawable.purple);
             }
         }
 

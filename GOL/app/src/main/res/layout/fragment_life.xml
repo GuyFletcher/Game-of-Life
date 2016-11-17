@@ -14,31 +14,36 @@
         android:layout_height="match_parent"
         tools:context="com.fletcherhart.gol.LifeActivity"/>
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/next_button"
-        android:text="Next"
-        />
+    <LinearLayout android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:orientation="horizontal" >
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/animation"
-        android:text="Animation"
-        />
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/next_button"
+            android:text="Next"
+            />
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/life_button"
-        android:text="Life"
-        />
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/animation"
+            android:text="Animation"
+            />
 
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/life_button"
+            android:text="Life"
+            />
+    </LinearLayout>
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/reset_button"
+        android:layout_gravity="center"
         android:text="Reset Gen. Count"
         />
 
@@ -46,6 +51,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/save_button"
+        android:layout_gravity="center"
         android:text="Save"
         />
 
@@ -53,6 +59,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/open_button"
+        android:layout_gravity="center"
         android:text="Open"
         />
 
@@ -60,24 +67,35 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/resetb_button"
+        android:layout_gravity="center"
         android:text="Reset"
         />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"
         android:id="@+id/life_text"/>
 
     <Spinner
-        android:id="@+id/spin_color"
-        android:layout_width="match_parent"
+        android:id="@+id/spin_alive"
+        android:layout_width="40dp"
         android:layout_height="wrap_content"
-        android:entries="@array/color_arrays"/>
+        android:layout_gravity="center"
+        android:entries="@array/color_arrays" />
+
+    <Spinner
+        android:id="@+id/spin_dead"
+        android:layout_width="40dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:entries="@array/color_arrays" />
 
     <Spinner
         android:id="@+id/spin_delay"
-        android:layout_width="match_parent"
+        android:layout_width="40dp"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"
         android:entries="@array/delay_arrays"/>
 
 
