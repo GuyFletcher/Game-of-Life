@@ -2,6 +2,7 @@ package com.fletcherhart.gol;
 
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Paint;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -32,19 +33,15 @@ public class LifeFragment extends Fragment {
 
     private Cell[] mCell = new Cell[400];
 
-    private int mPulseDiameter;				//Diameter of Pulsating cells
-    private boolean mPulseIncreasing;	//Are the circles getting bigger or smaller
     private boolean mTouchEnabled = true;
 
     private EditText mSizeField, mRowsField, mColumnsField;
-    private TextView mDelayLabel, mAliveLabel, mDeadLabel;
 
     private RecyclerView mLifeRecycler;
     private RecyclerView.Adapter<GridHolder> mAdapter = new GridAdapter();
 
     private TextView mCurGen;
 
-    private Handler mHandle;
 
     private static final int sDEFAULTDELAY = 1000;
 
@@ -54,6 +51,9 @@ public class LifeFragment extends Fragment {
     public int mColor, mColor2;
     private boolean mRunning;
     private Paint mAlive = new Paint(), mDead = new Paint();
+
+    private Handler handler = new Handler();
+
 
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_life, container, false);
@@ -100,7 +100,7 @@ public class LifeFragment extends Fragment {
                 }
 
                 updateColony();
-                mAdapter.notifyDataSetChanged();
+                //mAdapter.notifyDataSetChanged();
                 //System.out.println("Changed");
 
                 //Update Generation Label
@@ -114,8 +114,14 @@ public class LifeFragment extends Fragment {
             @Override
             public void onClick(View v) {
 
-                //every x milleseconds call updateColony()
-                //stop on second press
+                Runnable runnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        updateColony();
+                        handler.postDelayed(this, 1000);
+                    }
+                };
+                handler.postDelayed(runnable, 1000);
 
             }
         });
@@ -187,7 +193,7 @@ public class LifeFragment extends Fragment {
         // EXTRA CREDIT
         // Shows the proper items as selected.
         mAliveBox.setSelection(0);
-        mDeadBox.setSelection(8);
+        mDeadBox.setSelection(0);
         mDelayBox.setSelection(3);
 
 
@@ -243,7 +249,7 @@ public class LifeFragment extends Fragment {
     private class ControllerListener implements View.OnClickListener{
         public void onClick(View v){
             if (mRunning){
-                mHandle.removeCallbacks(r);
+               // mHandle.removeCallbacks(r);
                // mAnimationController.setText("Start Animation");
                 mRunning = false;
             }
@@ -254,14 +260,6 @@ public class LifeFragment extends Fragment {
             }
         }
     }
-
-    private final Runnable r = new Runnable()
-    {
-        public void run()
-        {
-            updateColony();
-        }
-    };
 
     //EXTRA CREDIT
     //Reset Generation
@@ -371,10 +369,10 @@ public class LifeFragment extends Fragment {
             for(int j = 0; j < mColumns; j++)
             {
                 mCell[k] = mCells[i][j];
-                //System.out.println("mCell at : " + k + mCell[k].getStatus() + " mCells: " + mCells[i][j].getStatus());
                 k++;
             }
         }
+        mAdapter.notifyDataSetChanged();
     }
 
     public void setGeneration(int gen){
@@ -432,13 +430,13 @@ public class LifeFragment extends Fragment {
             // actually change image displayed
             if(mCell[position].getStatus() == true)
             {
-                //holder.mButton.setBackgroundResource(R.drawable.red);
-                changeButton(holder);
+                holder.mButton.setBackgroundResource(R.drawable.red);
+               // changeButton(holder);
             }
             else
             {
-               //holder.mButton.setBackgroundResource(R.drawable.green);
-                changeButton2(holder);
+               holder.mButton.setBackgroundResource(R.drawable.green);
+                //changeButton2(holder);
             }
         }
 
