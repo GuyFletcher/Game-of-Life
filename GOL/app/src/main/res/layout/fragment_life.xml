@@ -16,7 +16,8 @@
 
     <LinearLayout android:layout_height="wrap_content"
         android:layout_width="match_parent"
-        android:orientation="horizontal" >
+        android:orientation="horizontal"
+        android:layout_gravity="center">
 
         <Button
             android:layout_width="wrap_content"
@@ -39,64 +40,75 @@
             android:text="Life"
             />
     </LinearLayout>
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/reset_button"
-        android:layout_gravity="center"
-        android:text="Reset Gen. Count"
-        />
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/save_button"
-        android:layout_gravity="center"
-        android:text="Save"
-        />
+    <LinearLayout android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:orientation="horizontal"
+        android:layout_gravity="center">
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/reset_button"
+            android:layout_gravity="center"
+            android:text="Reset Gen. Count"
+            />
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/open_button"
-        android:layout_gravity="center"
-        android:text="Open"
-        />
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/save_button"
+            android:layout_gravity="center"
+            android:text="Save"
+            />
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/resetb_button"
-        android:layout_gravity="center"
-        android:text="Reset"
-        />
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/open_button"
+            android:layout_gravity="center"
+            android:text="Open"
+            />
+    </LinearLayout>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:id="@+id/life_text"/>
+    <LinearLayout android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:orientation="horizontal"
+        android:layout_gravity="center">
 
-    <Spinner
-        android:id="@+id/spin_alive"
-        android:layout_width="40dp"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:entries="@array/color_arrays" />
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/resetb_button"
+            android:layout_gravity="center"
+            android:text="Reset"
+            />
 
-    <Spinner
-        android:id="@+id/spin_dead"
-        android:layout_width="40dp"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:entries="@array/color_arrays" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:id="@+id/life_text"/>
 
-    <Spinner
-        android:id="@+id/spin_delay"
-        android:layout_width="40dp"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:entries="@array/delay_arrays"/>
+        <Spinner
+            android:id="@+id/spin_alive"
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:entries="@array/color_alive" />
 
+        <Spinner
+            android:id="@+id/spin_dead"
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:entries="@array/color_dead" />
+
+        <Spinner
+            android:id="@+id/spin_delay"
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:entries="@array/delay_arrays"/>
+    </LinearLayout>
 
 </LinearLayout>

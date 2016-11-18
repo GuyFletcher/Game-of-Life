@@ -27,7 +27,9 @@ import android.support.v7.widget.RecyclerView;
 public class LifeFragment extends Fragment {
 
     private int mGeneration;
-    private Context context;
+    private Context mContext;
+
+    private static final String EXTRA = "com.fletcher.gol";
 
     private Cell [][] mCells;
 
@@ -40,23 +42,41 @@ public class LifeFragment extends Fragment {
     private RecyclerView mLifeRecycler;
     private RecyclerView.Adapter<GridHolder> mAdapter = new GridAdapter();
 
-    private TextView mCurGen;
+    private int mDelay = 1000;
 
-
-    private static final int sDEFAULTDELAY = 1000;
-
-    private Spinner mAliveBox, mDeadBox;
+    private Spinner mAliveBox, mDeadBox, mDelayBox;
 
     private int mRows, mColumns;
     public int mColor, mColor2;
     private boolean mRunning;
-    private Paint mAlive = new Paint(), mDead = new Paint();
 
     private Handler handler = new Handler();
 
+    private Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
 
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+            if(mRunning)
+            {
+                updateColony();
+               // mAdapter.notifyDataSetChanged();
+                handler.postDelayed(runnable, mDelay);
+            }
+            else
+            {
+                handler.removeCallbacks(runnable);
+            }
+
+            //handler.postDelayed(this, 1000);
+        }
+    };
+
+
+
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_life, container, false);
+
+        Intent intent = getActivity().getIntent();
 
         mRows = 20;
         mColumns = 20;
@@ -78,26 +98,22 @@ public class LifeFragment extends Fragment {
                 mCell[i] = new Cell();
         }
 
+        Bundle bundle = intent.getExtras();
+        if(bundle != null)
+        {
+            mCell = (Cell[]) bundle.getSerializable(EXTRA);
+        }
+
+        //mCell = (Cell[]) getActivity().getIntent().getSerializableExtra(EXTRA);
+
         mLifeRecycler = (RecyclerView) v.findViewById(R.id.reycler_gol);
         mLifeRecycler.setLayoutManager(new GridLayoutManager(getActivity(), mColumns));
         mLifeRecycler.setAdapter(mAdapter);
-
-        mAlive.setColor(Color.BLUE);
-        mDead.setColor(Color.YELLOW);
 
         Button mNextButton = (Button) v.findViewById(R.id.next_button);
         mNextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int k = 0;
-                for(int i = 0;i < mRows;i++)
-                {
-                    for(int j = 0; j < mRows;j++)
-                    {
-                        mCells[i][j] = mCell[k];
-                        k++;
-                    }
-                }
 
                 updateColony();
                 //mAdapter.notifyDataSetChanged();
@@ -114,15 +130,15 @@ public class LifeFragment extends Fragment {
             @Override
             public void onClick(View v) {
 
-                Runnable runnable = new Runnable() {
-                    @Override
-                    public void run() {
-                        updateColony();
-                        handler.postDelayed(this, 1000);
-                    }
-                };
-                handler.postDelayed(runnable, 1000);
-
+                if(mRunning)
+                {
+                    mRunning = false;
+                }
+                else
+                {
+                    mRunning = true;
+                    handler.postDelayed(runnable, mDelay);
+                }
             }
         });
 
@@ -131,7 +147,9 @@ public class LifeFragment extends Fragment {
         mCloneButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+               Intent i = new Intent(getActivity(), LifeActivity.class);
+               i.putExtra(EXTRA, mCell);
+               getActivity().startActivity(i);
             }
         });
 
@@ -147,12 +165,6 @@ public class LifeFragment extends Fragment {
                         break;
                     case 1:
                         mColor = 1;
-                        break;
-                    case 2:
-                        mColor = 2;
-                        break;
-                    case 3:
-                        mColor = 3;
                         break;
                 }
 
@@ -173,12 +185,6 @@ public class LifeFragment extends Fragment {
                     case 1:
                         mColor2 = 1;
                         break;
-                    case 2:
-                        mColor2 = 2;
-                        break;
-                    case 3:
-                        mColor2 = 3;
-                        break;
                 }
 
             }
@@ -187,7 +193,35 @@ public class LifeFragment extends Fragment {
             }
         });
 
-       final Spinner mDelayBox = (Spinner) v.findViewById(R.id.spin_delay);
+       mDelayBox = (Spinner) v.findViewById(R.id.spin_delay);
+       mDelayBox.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+           public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+               switch (position) {
+                   case 0:
+                       mDelay = 250;
+                       break;
+                   case 1:
+                       mDelay = 500;
+                       break;
+                   case 2:
+                       mDelay = 750;
+                       break;
+                   case 3:
+                       mDelay = 1000;
+                       break;
+                   case 4:
+                       mDelay = 1250;
+                       break;
+                   case 5:
+                       mDelay = 1500;
+                       break;
+               }
+
+           }
+           public void onNothingSelected(AdapterView<?> parent) {
+
+           }
+       });
 
 
         // EXTRA CREDIT
@@ -195,18 +229,6 @@ public class LifeFragment extends Fragment {
         mAliveBox.setSelection(0);
         mDeadBox.setSelection(0);
         mDelayBox.setSelection(3);
-
-
-        //EXTRA CREDIT
-        //Generation Stuff
-/*        mCurGen.setText("Generation: 0");
-        Button reset = (Button) v.findViewById(R.id.reset_button);
-        reset.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-            }
-        });*/
 
         //EXTRA CREDIT
         //Make the Save and Open buttons
@@ -225,50 +247,7 @@ public class LifeFragment extends Fragment {
             }
         });
 
-        //EXTRA
-        //Reset button
-        Button resetb = (Button) v.findViewById(R.id.resetb_button);
-        resetb.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-               // new ResetListener();
-            }
-        });
-
-
-
-        TextView rows = (TextView)v.findViewById(R.id.life_text);
-        TextView columns = (TextView)v.findViewById(R.id.life_text);
-        TextView size = (TextView)v.findViewById(R.id.life_text);
-
-
         return v;
-    }
-
-    // Class to listen for the timer.
-    private class ControllerListener implements View.OnClickListener{
-        public void onClick(View v){
-            if (mRunning){
-               // mHandle.removeCallbacks(r);
-               // mAnimationController.setText("Start Animation");
-                mRunning = false;
-            }
-            else {
-               // mHandle.postDelayed(r, mDelayBox.getSelectedItemPosition());
-                //mAnimationController.setText("Stop Animation");
-                mRunning = true;
-            }
-        }
-    }
-
-    //EXTRA CREDIT
-    //Reset Generation
-    private class GenResetListener implements View.OnClickListener{
-        public void onClick(View v){
-            setGeneration(0);
-            //Make Sure gets displayed
-            mCurGen.setText("Generation: " + Integer.toString(getGeneration()));
-        }
     }
 
     //EXTRA CREDIT
@@ -299,6 +278,16 @@ public class LifeFragment extends Fragment {
 
     //  A method that updates the entire colony to the next generation.
     public void updateColony(){
+
+        int k = 0;
+        for(int i = 0; i < mRows; i++)
+        {
+            for(int j = 0; j < mColumns; j++)
+            {
+                mCells[i][j] = mCell[k];
+                k++;
+            }
+        }
 
         // Creates an array of bytes that keep track of the number of cells living
         byte [][] livingNeighborsCount = new byte[mRows][mColumns];
@@ -363,7 +352,7 @@ public class LifeFragment extends Fragment {
         //EXTRA CREDIT
         //Increase generation
         mGeneration++;
-        int k = 0;
+        k = 0;
         for(int i = 0; i < mRows; i++)
         {
             for(int j = 0; j < mColumns; j++)
@@ -372,20 +361,8 @@ public class LifeFragment extends Fragment {
                 k++;
             }
         }
-        mAdapter.notifyDataSetChanged();
+       mAdapter.notifyDataSetChanged();
     }
-
-    public void setGeneration(int gen){
-        mGeneration = gen;
-    }
-    public int getGeneration(){
-        return mGeneration;
-    }
-
-    public void setPreferredSize(int col, int row) {mColumns = col;
-        mRows = row;
-    }
-
 
     private class GridHolder extends RecyclerView.ViewHolder {
 
@@ -394,12 +371,11 @@ public class LifeFragment extends Fragment {
 
 
         public GridHolder(LayoutInflater inflater, ViewGroup container) {
-            super(inflater.inflate(R.layout.square, container, false));
+            super(inflater.inflate(R.layout.cell, container, false));
 
 
             mButton = (Button)itemView.findViewById(R.id.cell_button);
-            Animation pulse = AnimationUtils.loadAnimation(mButton.getContext(), R.anim.animation);
-            mButton.startAnimation(pulse);
+
 
             mButton.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -419,6 +395,8 @@ public class LifeFragment extends Fragment {
 
         public void bindPosition(int p) {
             mPosition = p;
+            Animation pulse = AnimationUtils.loadAnimation(mButton.getContext(), R.anim.animation);
+            mButton.startAnimation(pulse);
         }
 
     }
@@ -430,33 +408,25 @@ public class LifeFragment extends Fragment {
             // actually change image displayed
             if(mCell[position].getStatus() == true)
             {
-                holder.mButton.setBackgroundResource(R.drawable.red);
-               // changeButton(holder);
+               // holder.mButton.setBackgroundResource(R.drawable.blue);
+                changeButton(holder);
             }
             else
             {
-               holder.mButton.setBackgroundResource(R.drawable.green);
-                //changeButton2(holder);
+               //holder.mButton.setBackgroundResource(R.drawable.red);
+               changeButton2(holder);
             }
         }
 
         public void changeButton(GridHolder holder)
         {
-            if(mColor == 0)
-            {
-                holder.mButton.setBackgroundResource(R.drawable.red);
-            }
-            else if (mColor == 1)
+            if (mColor == 0)
             {
                 holder.mButton.setBackgroundResource(R.drawable.green);
             }
-            else if (mColor == 2)
+            else if (mColor == 1)
             {
                 holder.mButton.setBackgroundResource(R.drawable.blue);
-            }
-            else if (mColor == 3)
-            {
-                holder.mButton.setBackgroundResource(R.drawable.purple);
             }
         }
 
@@ -467,14 +437,6 @@ public class LifeFragment extends Fragment {
                 holder.mButton.setBackgroundResource(R.drawable.red);
             }
             else if (mColor2 == 1)
-            {
-                holder.mButton.setBackgroundResource(R.drawable.green);
-            }
-            else if (mColor2 == 2)
-            {
-                holder.mButton.setBackgroundResource(R.drawable.blue);
-            }
-            else if (mColor2 == 3)
             {
                 holder.mButton.setBackgroundResource(R.drawable.purple);
             }

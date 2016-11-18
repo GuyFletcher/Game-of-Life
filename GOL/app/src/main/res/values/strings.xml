@@ -2,10 +2,13 @@
     <string name="app_name">Game of Life</string>
     <string name="Start">Start Animation</string>
 
-    <string-array name="color_arrays">
-        <item>Red</item>
+    <string-array name="color_alive">
         <item>Green</item>
         <item>Blue</item>
+    </string-array>
+
+    <string-array name="color_dead">
+        <item>Red</item>
         <item>Purple</item>
     </string-array>
 

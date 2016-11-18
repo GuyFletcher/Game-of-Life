@@ -11,7 +11,7 @@ import android.graphics.*;
 
 import java.io.*;
 
-public class Cell {
+public class Cell implements Serializable{
 
     // EXTRA CREDIT
 
