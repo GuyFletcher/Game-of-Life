@@ -9,8 +9,11 @@ import java.io.Serializable;
 import android.graphics.Color;
 import android.graphics.*;
 
+import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBDocument;
+
 import java.io.*;
 
+@DynamoDBDocument
 public class Cell implements Serializable{
 
     // EXTRA CREDIT

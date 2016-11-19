@@ -23,6 +23,20 @@ import android.os.Handler;
 
 import android.support.v7.widget.RecyclerView;
 
+import com.amazonaws.auth.CognitoCachingCredentialsProvider;
+import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBAttribute;
+import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBHashKey;
+import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBIndexHashKey;
+import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBIndexRangeKey;
+import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
+import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBTable;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.dynamodbv2.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
 
 public class LifeFragment extends Fragment {
 
@@ -77,6 +91,8 @@ public class LifeFragment extends Fragment {
         View v = inflater.inflate(R.layout.fragment_life, container, false);
 
         Intent intent = getActivity().getIntent();
+
+
 
         mRows = 20;
         mColumns = 20;
@@ -236,14 +252,40 @@ public class LifeFragment extends Fragment {
         save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                new Thread(new Runnable() {
+                    public void run() {
+                        CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
+                                getActivity().getApplicationContext(),
+                                "us-west-2:81639732-a618-4d90-a474-a9809fe1c72e", // Identity Pool ID
+                                Regions.US_WEST_2 // Region
+                        );
 
+
+
+                        AmazonDynamoDBClient ddbClient = new AmazonDynamoDBClient(credentialsProvider);
+                        ddbClient.setEndpoint("https://dynamodb.us-west-2.amazonaws.com");
+
+                        DynamoDBMapper mapper = new DynamoDBMapper(ddbClient);
+
+                        Grid grid = new Grid();
+                        Random rand = new Random();
+                        int value = rand.nextInt(50000);
+                        grid.setId(value);
+                        grid.setGrid(mCell);
+                        mapper.save(grid);
+
+
+                        }
+                    }).start();
             }
         });
         Button open = (Button) v.findViewById(R.id.open_button);
         open.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                Intent i = new Intent(getActivity(), OpenScoreActivity.class);
+                i.putExtra(EXTRA, mCell);
+                getActivity().startActivity(i);
             }
         });
 
@@ -406,38 +448,27 @@ public class LifeFragment extends Fragment {
             // tell holder which place on grid it is representing
             holder.bindPosition(position);
             // actually change image displayed
-            if(mCell[position].getStatus() == true)
-            {
-               // holder.mButton.setBackgroundResource(R.drawable.blue);
+            if (mCell[position].getStatus() == true) {
+                // holder.mButton.setBackgroundResource(R.drawable.blue);
                 changeButton(holder);
-            }
-            else
-            {
-               //holder.mButton.setBackgroundResource(R.drawable.red);
-               changeButton2(holder);
+            } else {
+                //holder.mButton.setBackgroundResource(R.drawable.red);
+                changeButton2(holder);
             }
         }
 
-        public void changeButton(GridHolder holder)
-        {
-            if (mColor == 0)
-            {
+        public void changeButton(GridHolder holder) {
+            if (mColor == 0) {
                 holder.mButton.setBackgroundResource(R.drawable.green);
-            }
-            else if (mColor == 1)
-            {
+            } else if (mColor == 1) {
                 holder.mButton.setBackgroundResource(R.drawable.blue);
             }
         }
 
-        public void changeButton2(GridHolder holder)
-        {
-            if(mColor2 == 0)
-            {
+        public void changeButton2(GridHolder holder) {
+            if (mColor2 == 0) {
                 holder.mButton.setBackgroundResource(R.drawable.red);
-            }
-            else if (mColor2 == 1)
-            {
+            } else if (mColor2 == 1) {
                 holder.mButton.setBackgroundResource(R.drawable.purple);
             }
         }
@@ -453,5 +484,4 @@ public class LifeFragment extends Fragment {
             return mCell.length;
         }
     }
-
 }
