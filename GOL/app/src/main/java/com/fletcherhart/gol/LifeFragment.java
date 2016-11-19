@@ -22,6 +22,7 @@ import android.widget.TextView;
 import android.os.Handler;
 
 import android.support.v7.widget.RecyclerView;
+import android.widget.Toast;
 
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBAttribute;
@@ -273,10 +274,12 @@ public class LifeFragment extends Fragment {
                         grid.setId(value);
                         grid.setGrid(mCell);
                         mapper.save(grid);
-
-
                         }
                     }).start();
+
+                Toast.makeText(getActivity().getApplicationContext(),
+                        "Grid Saved" , Toast.LENGTH_LONG)
+                        .show();
             }
         });
         Button open = (Button) v.findViewById(R.id.open_button);

@@ -1,5 +1,6 @@
 package com.fletcherhart.gol;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -17,11 +18,21 @@ import com.amazonaws.services.dynamodbv2.*;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class OpenScoreActivity extends AppCompatActivity {
 
+    private static final String EXTRA = "com.fletcher.gol";
     private ListView mListView;
-    ArrayList<String> grid = new ArrayList<String>();
+    private ArrayList<String> grid = new ArrayList<String>();
+    private Cell[] mCell = new Cell[400];
+
+    List<Grid> finalData;
 
 
 
@@ -31,41 +42,53 @@ public class OpenScoreActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_open_score);
 
-        new Thread(new Runnable() {
-            public void run() {
+        Future<List<Grid>> data = Executors.newSingleThreadExecutor().submit(new Callable<List<Grid>>() {
+               @Override
+               public List<Grid> call() throws Exception {
+                   CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
+                           getApplicationContext(),
+                           "us-west-2:81639732-a618-4d90-a474-a9809fe1c72e", // Identity Pool ID
+                           Regions.US_WEST_2 // Region
+                   );
+
+                   AmazonDynamoDBClient ddbClient = new AmazonDynamoDBClient(credentialsProvider);
+                   ddbClient.setEndpoint("https://dynamodb.us-west-2.amazonaws.com");
+
+                   DynamoDBMapper mapper = new DynamoDBMapper(ddbClient);
+
+                   DynamoDBScanExpression scanExpression = new DynamoDBScanExpression();
+
+                   return mapper.scan(Grid.class, scanExpression);
 
 
-                CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
-                        getApplicationContext(),
-                        "us-west-2:81639732-a618-4d90-a474-a9809fe1c72e", // Identity Pool ID
-                        Regions.US_WEST_2 // Region
-                );
+               }
+           });
 
-                AmazonDynamoDBClient ddbClient = new AmazonDynamoDBClient(credentialsProvider);
-                ddbClient.setEndpoint("https://dynamodb.us-west-2.amazonaws.com");
 
-                DynamoDBMapper mapper = new DynamoDBMapper(ddbClient);
-
-                DynamoDBScanExpression scanExpression = new DynamoDBScanExpression();
-                PaginatedScanList<Grid> result = mapper.scan(Grid.class, scanExpression);
-
-                for (int x = 0; x < result.size(); x++) {
-                    setArray(result.get(x).getId());
-                    System.out.println(result.get(x).getId());
-                }
-
+        try {
+            finalData = data.get();
+            for(int x = 0; x < finalData.size(); x++) {
+                grid.add("Board with random ID " + Integer.toString(finalData.get(x).getId()));
             }
-        }).start();
+
+            setList();
+        } catch (InterruptedException ex) {
+            System.out.println(ex);
+        } catch (ExecutionException ex) {
+            System.out.println(ex);
+        }
 
 
-        setList();
 
 
     }
 
+
     private void setList() {
 
         //Hack I'm sorry
+
+        System.out.println("Hello");
 
         // Get ListView object from xml
         mListView = (ListView) findViewById(R.id.pattern_list);
@@ -101,16 +124,27 @@ public class OpenScoreActivity extends AppCompatActivity {
 
                 // Show Alert
                 Toast.makeText(getApplicationContext(),
-                        "Position :"+itemPosition+"  ListItem : " +itemValue , Toast.LENGTH_LONG)
+                        "Opening : "+itemValue , Toast.LENGTH_LONG)
                         .show();
 
+
+                System.out.println(position);
+
+                ArrayList<Boolean> pos = finalData.get(position).getGrid();
+
+                for(int x = 0; x < 400; x++) {
+                    mCell[x] = new Cell();
+                    mCell[x].setStatus(pos.get(x));
+                }
+
+                Intent i = new Intent(getApplicationContext(), LifeActivity.class);
+                i.putExtra(EXTRA, mCell);
+                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                getApplicationContext().startActivity(i);
+                finish();
             }
 
         });
-    }
-
-    private void setArray(int id) {
-        grid.add(Integer.toString(id));
     }
 
 }
