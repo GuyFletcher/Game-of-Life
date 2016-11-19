@@ -28,10 +28,13 @@ import java.util.concurrent.Future;
 public class OpenScoreActivity extends AppCompatActivity {
 
     private static final String EXTRA = "com.fletcher.gol";
+    //List view
     private ListView mListView;
+    //The 'grid' for a cell
     private ArrayList<String> grid = new ArrayList<String>();
+    //Cell array
     private Cell[] mCell = new Cell[400];
-
+    //Loaded data from thread
     List<Grid> finalData;
 
 
@@ -42,9 +45,12 @@ public class OpenScoreActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_open_score);
 
+        //Future variable to bring data outside of the thread and allow it to be usable.
+
         Future<List<Grid>> data = Executors.newSingleThreadExecutor().submit(new Callable<List<Grid>>() {
                @Override
                public List<Grid> call() throws Exception {
+                   //Use Amazon Cognito to access DynamoDB
                    CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
                            getApplicationContext(),
                            "us-west-2:81639732-a618-4d90-a474-a9809fe1c72e", // Identity Pool ID
@@ -57,7 +63,7 @@ public class OpenScoreActivity extends AppCompatActivity {
                    DynamoDBMapper mapper = new DynamoDBMapper(ddbClient);
 
                    DynamoDBScanExpression scanExpression = new DynamoDBScanExpression();
-
+                    //Return the list
                    return mapper.scan(Grid.class, scanExpression);
 
 
@@ -66,11 +72,13 @@ public class OpenScoreActivity extends AppCompatActivity {
 
 
         try {
+            //Get data from 'Future' typed variable
             finalData = data.get();
+            //Add to the list
             for(int x = 0; x < finalData.size(); x++) {
                 grid.add("Board with random ID " + Integer.toString(finalData.get(x).getId()));
             }
-
+            //Set the list
             setList();
         } catch (InterruptedException ex) {
             System.out.println(ex);
@@ -86,9 +94,6 @@ public class OpenScoreActivity extends AppCompatActivity {
 
     private void setList() {
 
-        //Hack I'm sorry
-
-        System.out.println("Hello");
 
         // Get ListView object from xml
         mListView = (ListView) findViewById(R.id.pattern_list);
@@ -96,12 +101,7 @@ public class OpenScoreActivity extends AppCompatActivity {
         // Defined Array values to show in ListView
         String[] values = grid.toArray(new String[grid.size()]);
 
-        // Define a new Adapter
-        // First parameter - Context
-        // Second parameter - Layout for the row
-        // Third parameter - ID of the TextView to which the data is written
-        // Forth - the Array of data
-
+        //Adapter for the array to the list
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
                 android.R.layout.simple_list_item_1, android.R.id.text1, values);
 
@@ -132,11 +132,12 @@ public class OpenScoreActivity extends AppCompatActivity {
 
                 ArrayList<Boolean> pos = finalData.get(position).getGrid();
 
+                //Make cells to pass back to view
                 for(int x = 0; x < 400; x++) {
                     mCell[x] = new Cell();
                     mCell[x].setStatus(pos.get(x));
                 }
-
+                //Send data
                 Intent i = new Intent(getApplicationContext(), LifeActivity.class);
                 i.putExtra(EXTRA, mCell);
                 i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
